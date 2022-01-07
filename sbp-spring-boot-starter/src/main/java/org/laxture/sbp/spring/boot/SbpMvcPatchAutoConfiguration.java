@@ -67,13 +67,8 @@ public class SbpMvcPatchAutoConfiguration {
 		};
 	}
 
-	@Bean
-	public PluginResourceHandlerRegistrationCustomizer resourceHandlerRegistrationCustomizer() {
-		return new PluginResourceHandlerRegistrationCustomizer();
-	}
-
-	@EventListener(SbpPluginStateChangedEvent.class)
-	public void onPluginStarted() {
-
-	}
+//	@Bean
+//	public PluginResourceHandlerRegistrationCustomizer resourceHandlerRegistrationCustomizer() {
+//		return new PluginResourceHandlerRegistrationCustomizer();
+//	}
 }
