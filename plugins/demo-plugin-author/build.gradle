@@ -20,8 +20,9 @@ manifest {
 }
 
 task copyDependencies(type: Copy) {
-    dependsOn project(':demo-shared').jar, project(':demo-api').jar
-    from configurations.compile
+    group 'build'
+    dependsOn project(':demo-shared').jar, project(':demo-plugin-author-api').jar
+    from file("${project(':demo-plugin-author-api').buildDir}/libs")
     into 'libs'
     include "demo-plugin-author-api*.jar"
 }

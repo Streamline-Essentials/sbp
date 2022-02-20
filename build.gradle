@@ -177,6 +177,7 @@ subprojects {
 //*************************************************************************
 
     task("buildApp") {
+        group 'build'
         finalizedBy jar
     }
 

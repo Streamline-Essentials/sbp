@@ -26,6 +26,7 @@ manifest {
 }
 
 task copyDependencies(type: Copy) {
+    group 'build'
     from configurations.jpa.files
     into 'libs'
 //    include "demo-plugin-author-api*.jar"
