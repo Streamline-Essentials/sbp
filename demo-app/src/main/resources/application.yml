@@ -1,4 +1,11 @@
 spring:
+  mvc:
+    throw-exception-if-no-handler-found: true
+    static-path-pattern: /public/**
+  resources:
+    add-mappings: true
+    cache:
+      period: 3600
   datasource:
     url: "jdbc:postgresql://localhost/sbp"
     username: postgres
