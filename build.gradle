@@ -1,52 +1,22 @@
-import org.jooq.meta.jaxb.Logging
-
-def checkProperty(Project project, String propName) {
-    if (!project.hasProperty(propName)) return false
-    String prop = project.property(propName)
-    return prop != null && prop.length() > 0
-}
-
-def getPropertyOrElse(Project project, String propName, String alternative) {
-    if (!checkProperty(project, propName)) return alternative
-    return project.property(propName)
-}
-
-def isApplicationProject(String projectName) {
-    return projectName.startsWith('demo') \
-        && !projectName.endsWith('-api') \
-        && !projectName.endsWith('-shared') \
-        && !projectName.endsWith('-security')
-}
-
-def isLibraryProject(String projectName) {
-    return projectName.startsWith('sbp-')
-}
-
-def isPluginProject(Project project) {
-    return project.hasProperty("plugin")
-}
-
 buildscript {
-    ext.springBootVersion = '2.6.2'
-    ext.lombokVersion = '1.18.8'
-    ext.pf4jVersion = '3.6.0'
-    ext.jooqVersion = '3.12.3'
+    ext.springBootVersion = '2.7.4'
+    ext.lombokVersion = '1.18.24'
+    ext.pf4jVersion = '3.7.0'
 
     repositories {
         mavenCentral()
         maven { url 'https://repo.spring.io/plugins-release' }
     }
     dependencies {
-        classpath "org.yaml:snakeyaml:1.19"
-//        classpath 'ch.raffael.markdown-doclet:markdown-doclet:1.4' // TODO this plugin is not worked since JDK 11
+        classpath "gradle.plugin.com.github.johnrengelman:shadow:7.1.0"
+        classpath "org.springframework.boot:spring-boot:2.7.4"
+        classpath "com.vaadin:vaadin-gradle-plugin:23.2.2"
         classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
     }
 }
 
 plugins {
     id 'idea'
-    id 'nu.studer.jooq' version '6.0.1' apply false
-    id 'org.flywaydb.flyway' version "8.4.0" apply false
 }
 
 //*************************************************************************
@@ -60,159 +30,78 @@ idea {
     }
 }
 
-task(release) {
-    doLast {
-        def currentVersion = "${version}"
-        def newVersion = getPropertyOrElse(project, 'newVersion', '')
-        if (newVersion == '') {
-            throw new IllegalArgumentException("Argument 'newVersion' is not specified. Please carry '-PnewVersion=x.x.x' as argument.")
-        }
-        println "Setting version from $currentVersion to $newVersion"
-
-    //    exec {
-    //        commandLine 'sed', '-ie', "s/$currentVersion/$newVersion/g", "gradle.properties"
-    //    }
-        ant.replaceregexp(match:currentVersion, replace:newVersion, flags:'g', byline:true) {
-            fileset(dir: '', includes: ['gradle.properties', 'README.md', 'README.zh-cn.md'])
-        }
-        ant.propertyfile(file: "gradle.properties") {
-            entry( key: "version", value: "$newVersion")
-        }
-    }
-}
-
 //*************************************************************************
 // Sub Project Config
 //*************************************************************************
 
 subprojects {
+    apply plugin: 'java'
+    apply plugin: 'io.spring.dependency-management'
+    apply plugin: "com.github.johnrengelman.shadow"
+    apply plugin: "com.vaadin"
+
     repositories {
+        jcenter()
         mavenCentral()
         maven { url 'https://repo.spring.io/milestone' }
         maven { url "https://jitpack.io" }
-    }
-
-    apply plugin: 'java'
-    apply plugin: 'io.spring.dependency-management'
-//    apply plugin: 'ch.raffael.markdown-doclet'
-    if (isApplicationProject(name)) {
-        apply plugin: 'application'
-        apply plugin: 'org.springframework.boot'
-        apply plugin: 'nu.studer.jooq'
-        apply plugin: 'org.flywaydb.flyway'
-    } else {
-        apply plugin: 'maven-publish'
-        apply plugin: 'signing'
     }
 
 //*************************************************************************
 // Properties
 //*************************************************************************
 
-    Properties localProp = new Properties()
-    try {
-        localProp.load(project.rootProject.file('local.properties').newDataInputStream())
-    } catch(Exception ignored) {}
-    for (String propKey in localProp.keys()) {
-        ext.set(propKey, localProp.get(propKey))
-    }
-    ext."signing.secretKeyRingFile" = rootProject.file('publish.gpg')
+    group 'tv.quaint'
+    version '1.0-SNAPSHOT'
 
-    task setProperties {
-        doFirst {
-            project.ext.executable = "$project.name"
-        }
+    ext {
+        set('vaadinVersion', "23.2.2")
     }
 
 //*************************************************************************
 // Compile & Assemble
 //*************************************************************************
 
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-
-    tasks.withType(AbstractCompile) {
-        options.encoding = 'UTF-8'
-    }
-    tasks.withType(Javadoc) {
-        options.encoding = 'UTF-8'
-        if(JavaVersion.current().isJava9Compatible()) {
-            options.addBooleanOption('html5', true)
-        }
-    }
-
-    jar {
-        manifest.attributes provider: 'gradle'
-        enabled true
-        doFirst {
-            archiveFileName = "$project.name-${archiveVersion.get()}.${archiveExtension.get()}"
-        }
-    }
-
-    test {
-        testLogging.showStandardStreams = true
-        workingDir = project.rootDir
-        testLogging {
-            events "failed"
-            exceptionFormat "short"
-        }
-    }
-
-    configurations {
-        localLibs
-        compile.extendsFrom(localLibs)
-    }
-
     dependencies {
-        localLibs fileTree(dir: 'libs', include: '**')
-        implementation "org.projectlombok:lombok:${lombokVersion}"
+        compileOnly "org.projectlombok:lombok:1.18.24"
         annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
         annotationProcessor "org.pf4j:pf4j:${pf4jVersion}"
         testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
         testAnnotationProcessor "org.pf4j:pf4j:${pf4jVersion}"
+        implementation 'org.springframework.boot:spring-boot-starter-security'
+        implementation 'org.springframework.boot:spring-boot-starter-validation'
+        implementation 'com.vaadin:vaadin-spring-boot-starter:23.2.2'
+	    shadow 'org.springframework.boot:spring-boot-starter-security'
+	    shadow 'org.springframework.boot:spring-boot-starter-validation'
+        shadow 'com.vaadin:vaadin-spring-boot-starter:23.2.2'
+        runtimeOnly 'com.h2database:h2'
     }
 
 //*************************************************************************
-// Build Tasks
+// Build
 //*************************************************************************
 
-    task("buildApp") {
-        group 'build'
-        finalizedBy jar
+    jar.enabled = false
+    shadowJar {
+//        relocate 'com.github.stefvanschie.inventoryframework', 'tv.quaint.streamline.libs.inventoryframework'
+//
+//        manifest {
+//            attributes 'Plugin-Class': 'tv.quaint.webline.streamline.Webline'
+//            attributes 'Plugin-Id': 'webline'
+//            attributes 'Plugin-Version': version
+//            attributes 'Plugin-Requires': ''
+//            attributes 'Plugin-Dependencies': 'streamline-messaging?, streamline-groups?, streamline-discord?'
+//            attributes 'Plugin-Description': 'Website Module for StreamlineCore.'
+//            attributes 'Plugin-Provider': 'Quaint'
+//            attributes 'Plugin-License': 'Apache License 2.0'
+//        }
+
+        destinationDirectory  = file("$rootDir/build/libs")
+        archiveClassifier.set('')
     }
 
-//*************************************************************************
-// Plugin
-//*************************************************************************
-
-    if (isPluginProject(project)) {
-
-        Properties pluginProp = new Properties()
-        pluginProp.load(file('plugin.properties').newDataInputStream())
-
-        task buildPlugin(type: Jar) {
-            group 'build'
-            dependsOn build
-            manifest.attributes(
-                    "Plugin-Id": pluginProp.get("plugin.id"),
-                    "Plugin-Class": pluginProp.get("plugin.class"),
-                    "Plugin-Version": pluginProp.get("plugin.version"),
-                    "Plugin-Provider": pluginProp.get("plugin.provider"),
-                    "Plugin-Dependencies": pluginProp.get("plugin.dependencies"))
-            from configurations.localLibs.asFileTree.files.collect { zipTree(it) } // flat all lib classes into a fat Jar
-//            from configurations.localLibs.asFileTree.files
-            with jar
-            doLast {
-                // Deploy built plugins...
-            }
-        }
-
-        task deployPluginToLocal(type: Copy) {
-            group 'build'
-            dependsOn buildPlugin
-            from "$buildDir/libs/"
-            into "$rootDir/path/to/plugins/${plugin}/"
-        }
+    artifacts {
+        archives shadowJar
     }
 
 //*************************************************************************
@@ -222,186 +111,7 @@ subprojects {
     dependencyManagement {
         imports {
             mavenBom org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES
-        }
-    }
-
-    if (isApplicationProject(name)) {
-
-        bootRun {
-            doFirst {
-                jvmArgs = ["-Dfile.encoding=UTF-8", "-Dserver.port=${http_port}"]
-            }
-        }
-
-        if (project.hasProperty("db.url")) {
-
-//*************************************************************************
-// Database Initialization
-//*************************************************************************
-
-            task("doMigration") {
-                dependsOn processResources
-                doFirst {
-                    println ">>>>>>>>>>> doing db_migration on ${project.'db.url'}"
-
-                    flyway {
-                        url = project.'db.url'
-                        user = project.'db.user'
-                        password = project.'db.password'
-                        driver = project.'db.driver'
-                        schemas = ["${project.'db.schema'}"]
-                        baselineVersion = '0'
-                        baselineOnMigrate = true
-                        table = project.'db.migration.table'
-                        locations = ["filesystem:$buildDir/resources/main/${project.'db.migration.location'}"]
-                    }
-                }
-                finalizedBy flywayMigrate, flywayInfo
-            }
-
-            task("doDataMigration") {
-                dependsOn processResources
-                doFirst {
-                    println ">>>>>>>>>>> do db_data migration on ${project.'db.url'}"
-
-                    flyway {
-                        url = project.'db.url'
-                        user = project.'db.user'
-                        password = project.'db.password'
-                        driver = project.'db.driver'
-                        schemas = ["${project.'db.schema'}"]
-                        baselineOnMigrate = true
-                        baselineVersion = '0'
-                        table = project.'db.data.table'
-                        locations = ["filesystem:$buildDir/resources/main/${project.'db.data.location'}"]
-                    }
-
-                }
-                finalizedBy flywayMigrate, flywayInfo
-            }
-
-            jooq {
-                version = "${jooqVersion}"
-                configurations {
-                    main {
-                        generateSchemaSourceOnCompilation = true  // default (can be omitted)
-                        generationTool {
-                            logging = Logging.WARN
-                            jdbc {
-                                url = project.'db.url'
-                                user = project.'db.user'
-                                password = project.'db.password'
-                                driver = project.'db.driver'
-                            }
-                            generator {
-                                name = 'org.jooq.codegen.DefaultGenerator'
-                                database {
-                                    name = 'org.jooq.meta.postgres.PostgresDatabase'
-                                    inputSchema = project.'db.schema'
-                                    includes = '.*'
-                                    excludes = '_.*'
-                                    forcedTypes {
-                                        forcedType {
-                                            userType = 'com.fasterxml.jackson.databind.JsonNode'
-                                            binding = 'demo.sbp.shared.PostgresJsonbBinding'
-                                            types = 'jsonb'
-                                        }
-                                    }
-                                }
-                                generate {
-                                    deprecated = false
-                                    records = true
-                                    immutablePojos = true
-                                    fluentSetters = true
-                                }
-                                target {
-                                    packageName = project.'jooq.target.package'
-                                }
-                                strategy.name = 'org.jooq.codegen.DefaultGeneratorStrategy'
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-    } else if (isLibraryProject(name)) {
-
-    //*************************************************************************
-    // Maven
-    //*************************************************************************
-
-        task sourcesJar(type: Jar, dependsOn: classes) {
-            archiveClassifier.set('sources')
-            from sourceSets.main.allSource
-        }
-
-        task javadocJar(type: Jar, dependsOn: javadoc) {
-            archiveClassifier.set('javadoc')
-            from javadoc.destinationDir
-        }
-
-        artifacts {
-            archives jar
-            archives sourcesJar
-            archives javadocJar
-        }
-
-        group = 'org.laxture'
-
-        publishing {
-            publications {
-                mavenJava(MavenPublication) {
-                    groupId = project.getGroup()
-                    from components.java
-                    artifact sourcesJar
-                    artifact javadocJar
-                    pom {
-                        name = project.name
-                        description = 'sbp introduce plugin oriented programming to Spring Boot'
-                        url = 'https://github.com/hank-cp/sbp'
-                        organization {
-                            name = 'org.laxture'
-                            url = 'https://laxture.org'
-                        }
-                        issueManagement {
-                            system = 'GitHub'
-                            url = 'https://github.com/hank-cp/sbp/issues'
-                        }
-                        license {
-                            name = 'Apache License 3.0'
-                            url = 'https://github.com/hank-cp/sbp/blob/master/LICENSE'
-                            distribution = 'repo'
-                        }
-                        scm {
-                            url = 'https://github.com/hank-cp/sbp'
-                            connection = 'scm:git:git://github.com/hank-cp/sbp.git'
-                            developerConnection = 'scm:git:ssh://git@github.com:hank-cp/sbp.git'
-                        }
-                        developers {
-                            developer {
-                                name = 'Hank CP'
-                                email = 'true.cp@gmail.com'
-                            }
-                        }
-                    }
-                    repositories {
-                        maven {
-                            def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots"
-                            def stagingRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2"
-                            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : stagingRepoUrl
-                            credentials {
-                                username getPropertyOrElse(project, 'sonatypeUsername', '')
-                                password getPropertyOrElse(project, 'sonatypePassword', '')
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        signing {
-            sign publishing.publications.mavenJava
+            mavenBom "com.vaadin:vaadin-bom:${vaadinVersion}"
         }
     }
 }

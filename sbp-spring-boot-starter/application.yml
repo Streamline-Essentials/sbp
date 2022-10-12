@@ -1,0 +1,39 @@
+# THIS IS NOT THE PROPER PLACE OF THIS FILE! PUT IT ACCORDING TO:
+# https://javadeveloperzone.com/spring-boot/spring-boot-location-of-application-properties-or-yml-file/
+
+management:
+  info:
+    git:
+      enabled: false
+    build:
+      enabled: false
+#spring:
+#  autoconfigure:
+#    exclude:
+#      - "org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration"
+#      - "org.springframework.boot.autoconfigure.web.servlet.error.ErrorMvcAutoConfiguration"
+#      - "org.springframework.boot.autoconfigure.web.embedded.EmbeddedWebServerFactoryCustomizerAutoConfiguration"
+#      - "org.springframework.boot.autoconfigure.web.servlet.HttpEncodingAutoConfiguration"
+#      - "org.springframework.boot.autoconfigure.websocket.servlet.WebSocketServletAutoConfiguration"
+#      - "org.springframework.boot.autoconfigure.admin.SpringApplicationAdminJmxAutoConfiguration"
+#      - "org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration"
+#      - "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration"
+#      - "org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration"
+#      - "org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration"
+#      - "org.springframework.boot.autoconfigure.security.reactive.ReactiveSecurityAutoConfiguration"
+#      - "org.springframework.boot.autoconfigure.security.reactive.ReactiveUserDetailsServiceAutoConfiguration"
+#      - "org.springframework.boot.autoconfigure.security.rsocket.RSocketSecurityAutoConfiguration"
+#      - "org.springframework.boot.autoconfigure.security.saml2.Saml2RelyingPartyAutoConfiguration"
+#      - "org.springframework.boot.autoconfigure.sendgrid.SendGridAutoConfiguration"
+#      - "org.springframework.boot.autoconfigure.session.SessionAutoConfiguration"
+#      - "org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration"
+#      - "org.springframework.boot.autoconfigure.security.oauth2.client.reactive.ReactiveOAuth2ClientAutoConfiguration"
+#      - "org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration"
+#      - "org.springframework.boot.autoconfigure.security.oauth2.resource.reactive.ReactiveOAuth2ResourceServerAutoConfiguration"
+#
+#sbp-plugin:
+#  plugin-first-classes:
+#    - tv.quaint.webline.spring.*
+#    - org.springframework.boot.autoconfigure.data.*
+#    - org.springframework.boot.autoconfigure.orm.*
+#    - org.springframework.boot.orm.jpa.*

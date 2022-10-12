@@ -1,18 +1,29 @@
 plugins {
-    id 'java-library'
-    id 'maven-publish'
+    id 'org.springframework.boot' apply false
 }
 
 group = 'org.laxture.sbp'
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot'
+    implementation 'org.springframework.boot:spring-boot:2.7.4'
+    implementation 'org.springframework.boot:spring-boot-actuator:2.7.4'
+    implementation 'org.springframework.boot:spring-boot-actuator-autoconfigure:2.7.4'
+    implementation 'org.springframework.boot:spring-boot-autoconfigure-processor:2.7.4'
     implementation 'org.springframework:spring-webmvc'
     implementation 'org.apache.commons:commons-lang3'
     implementation 'javax.annotation:javax.annotation-api'
     implementation 'org.laxture:spring-static-ctx:0.1.2'
 
-    api ("org.pf4j:pf4j:${pf4jVersion}") {
+    shadow 'org.springframework.boot:spring-boot:2.7.4'
+    shadow 'org.springframework.boot:spring-boot-actuator:2.7.4'
+    shadow 'org.springframework.boot:spring-boot-actuator-autoconfigure:2.7.4'
+    shadow 'org.springframework.boot:spring-boot-autoconfigure-processor:2.7.4'
+    shadow 'org.springframework:spring-webmvc'
+    shadow 'org.apache.commons:commons-lang3'
+    shadow 'javax.annotation:javax.annotation-api'
+    shadow 'org.laxture:spring-static-ctx:0.1.2'
+
+    shadow implementation("org.pf4j:pf4j:${pf4jVersion}") {
         exclude group: 'org.slf4j', module: 'slf4j-log4j12'
     }
 }

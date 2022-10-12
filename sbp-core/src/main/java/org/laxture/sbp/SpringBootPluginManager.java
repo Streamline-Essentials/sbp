@@ -23,6 +23,7 @@ import org.pf4j.*;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 
 import javax.annotation.PostConstruct;
@@ -48,10 +49,19 @@ public class SpringBootPluginManager extends DefaultPluginManager
 
     public SpringBootPluginManager() {
         super();
+        initDeep();
     }
 
     public SpringBootPluginManager(Path pluginsRoot) {
         super(pluginsRoot);
+        initDeep();
+    }
+
+    public void initDeep() {
+        GenericApplicationContext context = new GenericApplicationContext();
+        context.refresh();
+        setApplicationContext(context);
+        setApplicationContext(context);
     }
 
     @Override
@@ -224,6 +234,7 @@ public class SpringBootPluginManager extends DefaultPluginManager
     @Override
     public void startPlugins() {
         doStartPlugins();
+        if (mainApplicationContext == null) return;
         mainApplicationContext.publishEvent(new SbpPluginStateChangedEvent(mainApplicationContext));
     }
 
@@ -235,6 +246,7 @@ public class SpringBootPluginManager extends DefaultPluginManager
     @Override
     public void stopPlugins() {
         doStopPlugins();
+        if (mainApplicationContext == null) return;
         mainApplicationContext.publishEvent(new SbpPluginStateChangedEvent(mainApplicationContext));
     }
 

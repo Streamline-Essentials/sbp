@@ -1,23 +1,28 @@
 plugins {
-    id 'java-library'
-    id 'maven-publish'
+    id 'org.springframework.boot' apply false
 }
 
 group = 'org.laxture.sbp'
 
 dependencies {
-    api project(':sbp-core')
+    implementation(shadow(files("${rootProject.rootDir}/build/libs/sbp-core-1.0-SNAPSHOT.jar")))
 
-    implementation "org.springframework.boot:spring-boot-starter-web"
-    implementation "org.springframework.boot:spring-boot-starter-aop"
-    implementation "org.springframework.boot:spring-boot-configuration-processor"
-    implementation "org.springframework.boot:spring-boot-autoconfigure"
-    implementation "org.springframework:spring-context-support"
+    implementation shadow("org.springframework.boot:spring-boot-starter-web")
+    implementation shadow("org.springframework.boot:spring-boot-starter-aop")
+    implementation shadow("org.springframework.boot:spring-boot-configuration-processor")
+    implementation shadow("org.springframework.boot:spring-boot-autoconfigure")
+    implementation shadow("org.springframework:spring-context-support")
+    implementation 'com.vaadin:vaadin-spring-boot-starter:23.2.2'
+    shadow 'com.vaadin:vaadin-spring-boot-starter:23.2.2'
 
-    implementation "org.apache.commons:commons-lang3"
-    implementation "commons-codec:commons-codec"
+    implementation shadow("org.apache.commons:commons-lang3")
+    implementation shadow("commons-codec:commons-codec")
 
-    implementation 'org.flywaydb:flyway-core'
+    implementation shadow('org.flywaydb:flyway-core')
+
+//    shadow implementation("org.pf4j:pf4j:${pf4jVersion}") {
+//        exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+//    }
 
     annotationProcessor "org.springframework.boot:spring-boot-autoconfigure-processor"
 }

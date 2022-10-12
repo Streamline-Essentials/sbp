@@ -15,6 +15,7 @@
  */
 package org.laxture.sbp;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.laxture.sbp.internal.PluginRequestMappingHandlerMapping;
@@ -25,6 +26,7 @@ import org.pf4j.*;
 import org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
@@ -67,16 +69,20 @@ public abstract class SpringBootPlugin extends Plugin {
     private final SpringBootstrap springBootstrap;
     private ApplicationContext applicationContext;
     private final Set<String> injectedExtensionNames = new HashSet<>();
+    @Getter
+    private final String runArguments;
 
     public SpringBootPlugin(PluginWrapper wrapper) {
         super(wrapper);
         springBootstrap = createSpringBootstrap();
+        runArguments = createRunArguments();
+        applicationContext = springBootstrap.createApplicationContext();
     }
 
-    private PluginRequestMappingHandlerMapping getMainRequestMapping() {
-        return (PluginRequestMappingHandlerMapping)
-                getMainApplicationContext().getBean("requestMappingHandlerMapping");
-    }
+//    private PluginRequestMappingHandlerMapping getMainRequestMapping() {
+//        return (PluginRequestMappingHandlerMapping)
+//                getMainApplicationContext().getBean("requestMappingHandlerMapping");
+//    }
 
     /**
      * Release plugin holding release on stop.
@@ -91,8 +97,8 @@ public abstract class SpringBootPlugin extends Plugin {
         long startTs = System.currentTimeMillis();
         log.debug("Starting plugin {} ......", getWrapper().getPluginId());
 
-        applicationContext = springBootstrap.run();
-        getMainRequestMapping().registerControllers(this);
+        applicationContext = springBootstrap.run(getRunArguments());
+//        getMainRequestMapping().registerControllers(this);
 
         // register Extensions
         Set<String> extensionClassNames = getWrapper().getPluginManager()
@@ -134,7 +140,7 @@ public abstract class SpringBootPlugin extends Plugin {
             unregisterBeanFromMainContext(extensionName);
         }
 
-        getMainRequestMapping().unregisterControllers(this);
+//        getMainRequestMapping().unregisterControllers(this);
         applicationContext.publishEvent(new SbpPluginStoppedEvent(applicationContext));
         ApplicationContextProvider.unregisterApplicationContext(applicationContext);
         injectedExtensionNames.clear();
@@ -174,6 +180,10 @@ public abstract class SpringBootPlugin extends Plugin {
     }
 
     protected abstract SpringBootstrap createSpringBootstrap();
+
+    protected String createRunArguments() {
+        return "";
+    }
 
     public GenericApplicationContext getApplicationContext() {
         return (GenericApplicationContext) applicationContext;

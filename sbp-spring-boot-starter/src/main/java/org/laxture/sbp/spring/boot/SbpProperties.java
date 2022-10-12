@@ -72,7 +72,7 @@ public class SbpProperties {
 	 */
 	private RuntimeMode runtimeMode = RuntimeMode.DEPLOYMENT;
 	/**
-	 * Plugin root directory: default “plugins”; when non-jar mode plugin, the value
+	 * Plugin root directory: default \"plugins\"; when non-jar mode plugin, the value
 	 * should be an absolute directory address
 	 */
 	private String pluginsRoot = "plugins";
